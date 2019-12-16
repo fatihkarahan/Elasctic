@@ -1,0 +1,126 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<input id="createInndex" type="button" value="Create Index" />
+<input id="addData" type="button" value="add Datas" />
+<input id="deleteIndex" type="button" value="Delete Index" />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<div class="col-md-10">
+    <input style="width: 95%;" type="text" id="term" value="" placeholder="ceket , kürk , deri" /><select style="height: 29px;" name="lang" id="lang"><option selected value="tr">tr</option><option value="en">en</option></select>
+    <div style="display:none;border: inset;background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 10px 30px rgba(41,51,57,.75);
+    /* left: 0; */
+    overflow: hidden;
+    position: absolute;
+    /* right: auto; */
+    /* top: 44px; */
+    width: 97%;
+    z-index: 100;
+    border: inset;" id="results"></div>
+</div>
+<script src="~/js/jquery-2.2.4.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#term").keyup(function () {
+            var term = $("#term").val();
+            if (term == '') {
+                $('#results').hide();
+            }
+            else {
+                $.ajax({
+                    url: '/Home/Search',
+                    type: 'POST',
+                    data: { term: term, lang: $('#lang').val() },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        var html = '';
+                        html = '<b>' + term + '</b>' + ' için arama sonuçları';
+                        for (i = 0; i < data.length; i++) {
+                            html += '<li> <a href="' + data[i].context.category_url[0] + '">' + data[i].text + '</a> <a style="margin-left: 20px;">' + data[i].context.price + ' Tl</a> </li>';
+                            html += '<li style="margin-left: 20px;"> <a href="' + data[i].context.category_url[2] + '">' + data[i].context.category_url[1] + ' kategorisi için aramaya yapın.</a>  </li>';
+                        }
+                        $('#results').html(html);
+                        $('#results').show();
+                    },
+                    error: function (hata, ajaxOptions, thrownError) {
+                        alert(hata.status);
+                        alert(thrownError);
+                        alert(hata.responseText);
+                    }
+                });
+            };
+        });
+        $("#createInndex").click(function () {
+
+            $.ajax({
+                url: '/Home/CreateIndex',
+                type: 'POST',
+                // data: { term: term, lang: $('#lang').val() },
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    alert(data);
+                },
+                error: function (hata, ajaxOptions, thrownError) {
+                    alert(hata.status);
+                    alert(thrownError);
+                    alert(hata.responseText);
+                }
+            });
+        });
+        $("#addData").click(function () {
+
+            $.ajax({
+                url: '/Home/AddData',
+                type: 'POST',
+                // data: { term: term, lang: $('#lang').val() },
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    alert(data);
+                },
+                error: function (hata, ajaxOptions, thrownError) {
+                    alert(hata.status);
+                    alert(thrownError);
+                    alert(hata.responseText);
+                }
+            });
+        });
+        $("#deleteIndex").click(function () {
+
+            $.ajax({
+                url: '/Home/DeleteIndex',
+                type: 'POST',
+                // data: { term: term, lang: $('#lang').val() },
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    alert(data);
+                },
+                error: function (hata, ajaxOptions, thrownError) {
+                    alert(hata.status);
+                    alert(thrownError);
+                    alert(hata.responseText);
+                }
+            });
+        });
+        window.addEventListener('click', function (e) {
+            if (document.getElementById('results').contains(e.target)) {
+                // Clicked in box
+            }
+            else if (document.getElementById('term').contains(e.target)) {
+            }
+            else {
+                $("#term").val('');
+                $('#results').hide();
+            }
+        });
+    });
+</script>
