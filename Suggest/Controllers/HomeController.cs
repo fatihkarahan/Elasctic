@@ -15,8 +15,6 @@ namespace Suggest.Controllers
     public class HomeController : Controller
     {
         private static ElasticClient _client = null;
-        private static string clientEndPoint = "http://192.168.77.7:9200";
-        private static string indexName = "suggest";
         private readonly ILogger<HomeController> _logger;
         public HomeController(ILogger<HomeController> logger)
         {
@@ -36,38 +34,38 @@ namespace Suggest.Controllers
             if (string.IsNullOrEmpty(term))
                 return Json("");
             var response = NativeSuggest(term, lang);
-           // var responseSuggest = Suggest(term, lang);
+            // var responseSuggest = Suggest(term, lang);
 
             return Json(response);
         }
         [HttpPost]
         public JsonResult CreateIndex()
         {
-            if (Client.IndexExists(indexName).Exists)
+            if (Client.IndexExists("suggest").Exists)
                 return Json("bu index ekli");
 
-            var indexResponse = Client.CreateIndex(indexName, c => c
-            .Mappings(m=>m.Map<Product>(m => m.Properties(props => props
-                   .Completion(s => s
-                       .Name(p => p.Suggest)
-                       .Analyzer("simple")
-                       .SearchAnalyzer("simple")
-                       .MaxInputLength(30)
-                       .PreservePositionIncrements()
-                       .PreserveSeparators()
-                       .Contexts(c=>c.Category(ca=>ca.Name("category_url")).Category(ca=>ca.Name("image")).Category(ca => ca.Name("price")).Category(ca => ca.Name("language")
-                   )))
-                   ))));
-           
+            var indexResponse = Client.CreateIndex("suggest", c => c
+            .Mappings(m => m.Map<Product>(m => m.Properties(props => props
+                     .Completion(s => s
+                         .Name(p => p.Suggest)
+                         .Analyzer("simple")
+                         .SearchAnalyzer("simple")
+                         .MaxInputLength(30)
+                         .PreservePositionIncrements()
+                         .PreserveSeparators()
+                         .Contexts(c => c.Category(ca => ca.Name("category_url")).Category(ca => ca.Name("image")).Category(ca => ca.Name("price")).Category(ca => ca.Name("language")
+                     )))
+                     ))));
+
             return Json("eklendi");
         }
         [HttpPost]
         public JsonResult DeleteIndex()
         {
-            if (!Client.IndexExists(indexName).Exists)
+            if (!Client.IndexExists("suggest").Exists)
                 return Json("bu index yok");
 
-            var indexResponse = Client.DeleteIndex(indexName);
+            var indexResponse = Client.DeleteIndex("suggest");
             return Json("silindi");
         }
         [HttpPost]
@@ -75,23 +73,28 @@ namespace Suggest.Controllers
         {
             List<Product> data = new List<Product>();
             Dictionary<string, IEnumerable<string>> sd = new Dictionary<string, IEnumerable<string>>();
-            sd.Add("category_url", new List<string>() { "www.defacto.com.tr/kürk", "Kürk Ceket", "www.defacto.com.tr/kürk-ceket" });
+            sd.Add("category_url", new List<string>() { "kürk", "Kürk Ceket", "kürk-ceket" });
             sd.Add("price", new List<string>() { "30.05" });
-            sd.Add("image", new List<string>() { "www.defacto.com.tr/kürk" });
-            sd.Add("language", new List<string>() { "en","tr" });
+            sd.Add("image", new List<string>() { "kürk" });
+            sd.Add("language", new List<string>() { "en", "tr" });
             data.Add(new Product()
             {
                 Id = 1,
                 Name = "Kürk Ceket Kahverengi",
-                Suggest = new CompletionField() { Weight = 13, Contexts = sd
-                , Input = new List<string>() { "Kürk Ceket Kahverengi", "kürk", "ceket", "kahverengi" } }
+                Suggest = new CompletionField()
+                {
+                    Weight = 13,
+                    Contexts = sd
+                ,
+                    Input = new List<string>() { "Kürk Ceket Kahverengi", "kürk", "ceket", "kahverengi" }
+                }
 
             });
             sd = new Dictionary<string, IEnumerable<string>>();
-            sd.Add("category_url", new List<string>() { "www.defacto.com.tr/deri", "Deri Ceket", "www.defacto.com.tr/deri-ceket" });
+            sd.Add("category_url", new List<string>() { "deri", "Deri Ceket", "deri-ceket" });
             sd.Add("price", new List<string>() { "99.85" });
-            sd.Add("image", new List<string>() { "www.defacto.com.tr/deri" });
-            sd.Add("language", new List<string>() {  "tr" });
+            sd.Add("image", new List<string>() { "deri" });
+            sd.Add("language", new List<string>() { "tr" });
             data.Add(new Product()
             {
                 Id = 2,
@@ -106,9 +109,9 @@ namespace Suggest.Controllers
 
             });
             sd = new Dictionary<string, IEnumerable<string>>();
-            sd.Add("category_url", new List<string>() { "www.defacto.com.tr/Blazzer", "Blazzer Ceket", "www.defacto.com.tr/Blazzer-ceket" });
+            sd.Add("category_url", new List<string>() { "Blazzer", "Blazzer Ceket", "Blazzer-ceket" });
             sd.Add("price", new List<string>() { "57.78" });
-            sd.Add("image", new List<string>() { "www.defacto.com.tr/Blazzer" });
+            sd.Add("image", new List<string>() { "Blazzer" });
             sd.Add("language", new List<string>() { "en" });
             data.Add(new Product()
             {
@@ -124,10 +127,10 @@ namespace Suggest.Controllers
 
             });
             sd = new Dictionary<string, IEnumerable<string>>();
-            sd.Add("category_url", new List<string>() { "www.defacto.com.tr/Kot", "Kot Ceket", "www.defacto.com.tr/Kot-ceket" });
+            sd.Add("category_url", new List<string>() { "Kot", "Kot Ceket", "Kot-ceket" });
             sd.Add("price", new List<string>() { "51.12" });
-            sd.Add("image", new List<string>() { "www.defacto.com.tr/Kot" });
-            sd.Add("language", new List<string>() { "en","tr" });
+            sd.Add("image", new List<string>() { "Kot" });
+            sd.Add("language", new List<string>() { "en", "tr" });
             data.Add(new Product()
             {
                 Id = 4,
@@ -142,9 +145,9 @@ namespace Suggest.Controllers
 
             });
             sd = new Dictionary<string, IEnumerable<string>>();
-            sd.Add("category_url", new List<string>() { "www.defacto.com.tr/Mont", "Erkek Mont", "www.defacto.com.tr/Erkek-mont" });
+            sd.Add("category_url", new List<string>() { "Mont", "Erkek Mont", "Erkek-mont" });
             sd.Add("price", new List<string>() { "123.23" });
-            sd.Add("image", new List<string>() { "www.defacto.com.tr/Mont" });
+            sd.Add("image", new List<string>() { "Mont" });
             sd.Add("language", new List<string>() { "en" });
             data.Add(new Product()
             {
@@ -160,10 +163,10 @@ namespace Suggest.Controllers
 
             });
             sd = new Dictionary<string, IEnumerable<string>>();
-            sd.Add("category_url", new List<string>() { "www.defacto.com.tr/Mont", "Kadın Mont", "www.defacto.com.tr/Kadın-mont" });
+            sd.Add("category_url", new List<string>() { "Mont", "Kadın Mont", "Kadın-mont" });
             sd.Add("price", new List<string>() { "112.23" });
-            sd.Add("image", new List<string>() { "www.defacto.com.tr/Mont" });
-            sd.Add("language", new List<string>() { "en","tr" });
+            sd.Add("image", new List<string>() { "Mont" });
+            sd.Add("language", new List<string>() { "en", "tr" });
             data.Add(new Product()
             {
                 Id = 6,
@@ -180,13 +183,13 @@ namespace Suggest.Controllers
             foreach (var item in data)
             {
                 Client.Index(item, i => i
-                       .Index(indexName)
+                       .Index("suggest")
                        .Type("product")
                        .Id(item.Id)
                        //.Refresh()
                        );
             }
-          
+
             return Json("eklendi");
         }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -197,7 +200,7 @@ namespace Suggest.Controllers
         static List<SuggestRespnse> NativeSuggest(string term, string language)
         {
             var response2 = Client.Search<Product>(s => s
-            .Index(indexName)
+            .Index("suggest")
             .Suggest(
                 su => su
             .Completion("suggest", cs => cs
@@ -242,7 +245,7 @@ namespace Suggest.Controllers
         static Nest.Suggest<Post> Suggest(string term, string language)
         {
             var response2 = Client.Suggest<Post>(x => x		// use suggest method
-            .Index(indexName)                                   //index name
+            .Index("suggest")                                   //index name
     .Completion("tag-suggestions", c => c 		// use completion suggester and name it
         .Prefix(term)					// pass text
         .Field(f => f.Suggest)			// work against completion field
@@ -260,10 +263,10 @@ namespace Suggest.Controllers
                         if (_client == null)
                         {
                             List<Uri> nodes = new List<Uri>();
-                            nodes.Add(new Uri(clientEndPoint));
+                            nodes.Add(new Uri("http://192.168.77.7:9200"));
                             var pool = new SniffingConnectionPool(nodes);
                             ConnectionSettings settings = null;
-                            settings = new ConnectionSettings(new Uri(clientEndPoint));
+                            settings = new ConnectionSettings(new Uri("http://192.168.77.7:9200"));
                             _client = new ElasticClient(settings);
                         }
                     }
